@@ -6,23 +6,38 @@ For all your midi processing needs!
 
 """
 
-from mido import MidiFile, Message, MidiTrack, MetaMessage
+### Libraries
 
+# Native
 from os import listdir
 from os.path import  abspath, expanduser as eu, join
 
+# 3rd party
+from mido import MidiFile, Message, MidiTrack, MetaMessage
 import numpy as np
 import matplotlib.pyplot as plt
 
 HOME = eu('~')
-PATH = join(HOME, 'VGmidi')
+PATH = join(HOME, 'VGScrapes')
+ALL_MIDI_FOLDERS = [join(PATH, folder) for folder in listdir(PATH)[1:]]
 
-files = listdir(PATH)
+ALL_MIDI_FILES = []
+
+for folder in ALL_MIDI_FOLDERS:
+
+	ALL_MIDI_FILES += [join(folder, file) for file in listdir(folder)]
+
+
+# files = listdir(PATH)
+
+
+STEPS_PER_MEASURE = 96
+
 
 all_midi_matrices = []
 
-
-
+print (ALL_MIDI_FILES[500])
+print (ALL_MIDI_FILES[501])
 ### MidiMatrix class
 ###
 ### This is a class that extends the `mido.MidiFile` module. It's purpose is to convert 
@@ -30,8 +45,8 @@ all_midi_matrices = []
 
 class MidiMatrix(MidiFile):
 
-	def __init__(self, file_index):
-		super().__init__(abspath(join(PATH, files[file_index])))
+	def __init__(self, midi_file):
+		super().__init__(midi_file)
 		
 		self.time_sig_msg = next((msg for msg in self.tracks[0] if msg.type == 'time_signature'), None)
 		self.numerator, self.denominator = (self.time_sig_msg.numerator, self.time_sig_msg.denominator) if self.time_sig_msg and self.time_sig_msg.numerator != 1 else (4, 4)
@@ -171,12 +186,18 @@ class MidiMatrix(MidiFile):
 # axes = []
 # fig=plt.figure()
 
-# for i in range(8):
-# 	plt.figure()
-# 	plt.imshow(midmat[i])
-# 	plt.title("Measure" + str(i+1))
+def plot_midi_matrix(mat, ran=[0]):
+	"""
+	Plot specified measures of a midi matrix, specified by their indices in `ran` (can't use the 
+	word 'range' for obvious reasons). Throw error if index in range does not fall in [0, 15] range.
+	"""
 
-# plt.show()
+	for i in ran:
+		plt.figure()
+		plt.imshow(midmat[i])
+		plt.title("Measure" + str(i+1))
+
+	plt.show()
 
 
 def matrix_to_mid(matrix, outfile_name):
@@ -222,12 +243,70 @@ def matrix_to_mid(matrix, outfile_name):
 	mid.save(outfile_name)
 
 
-for i in range(50):
-	mid = MidiMatrix(i)
-	midmat = mid.mid_to_matrix()
-	name = mid.filename.split('/')[-1]
-	matrix_to_mid(midmat, "mmtests/" + name)
-	print("%d completed, %s was successfully converted" % (i+1, name))
+def convert_range(ran):
+
+	for i in range(ran):
+		mid = MidiMatrix(i)
+		midmat = mid.mid_to_matrix()
+		name = mid.filename.split('/')[-1]
+		matrix_to_mid(midmat, "mmtests/" + name)
+		print("%d completed, %s was successfully converted" % (i+1, name))
+
+
+faulty_files = []
+parsing_errors = []
+
+if __name__ == '__main__':
+
+	num_files = len(ALL_MIDI_FILES)
+
+	for file in ALL_MIDI_FILES:
+		filename = file.split('/')[-1]
+		try:
+			mid = MidiMatrix(file)
+		except:
+			print('Error: there was an error parsing %s' % file)
+			parsing_errors.append((ALL_MIDI_FILES.index(file), file))
+			continue
+
+		print("Processing file %d of %d:" % (ALL_MIDI_FILES.index(file), num_files))
+		print(f"{file}")
+		
+		try:	
+			mid.mid_to_matrix()
+			print()
+			print(f"{filename} has successfully been converted to a numpy matrix!")
+	
+		except:
+			print("Warning: %s could not be converted to matrix" % filename)
+			faulty_files.append((ALL_MIDI_FILES.index(file), file))
+		
+		print("------------------------")
+		print()
+
+	np.save('midimatrices.npy', np.array(all_midi_matrices))
+	print("Done!")
+	print()
+	print("Successfully converted %d out of %d files!" % (len(all_midi_matrices), num_files))
+	print()
+
+	with open('faulty_midi.txt', 'w') as fh:
+		for tup in faulty_files:
+			fh.write("%s\n" % tup)
+	
+	if faulty_files:
+		print("Here are the ones that didn't convert: ")
+		for i, f in faulty_files:
+			print(f"{i}: {f}") 
+
+	if parsing_errors:
+		print("Here are the files that couldn't be parsed: ")
+		for i, f in parsing_errors:
+			print(f"{i}: {f}") 
+
+
+
+
 
 
 
