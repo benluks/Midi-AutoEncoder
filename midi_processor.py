@@ -25,10 +25,7 @@ ALL_MIDI_FILES = []
 
 for folder in ALL_MIDI_FOLDERS:
 
-	ALL_MIDI_FILES += [join(folder, file) for file in listdir(folder)]
-
-
-# files = listdir(PATH)
+	ALL_MIDI_FILES += [join(folder, file) for file in listdir(folder)]a
 
 
 STEPS_PER_MEASURE = 96
@@ -36,8 +33,6 @@ STEPS_PER_MEASURE = 96
 
 all_midi_matrices = []
 
-print (ALL_MIDI_FILES[500])
-print (ALL_MIDI_FILES[501])
 ### MidiMatrix class
 ###
 ### This is a class that extends the `mido.MidiFile` module. It's purpose is to convert 
@@ -88,7 +83,7 @@ class MidiMatrix(MidiFile):
 		computationally more expensive and therefore disfavourable.
 		"""
 		
-		matrix = np.zeros((16, 96, 96))
+		matrix = np.zeros((16, 96, 96), 'int8')
 
 		for track in self.tracks[1:]:
 			
@@ -137,7 +132,7 @@ class MidiMatrix(MidiFile):
 		# we then round that number to the nearest integer and voila
 		
 		# allot zero matrix to be filled in
-		matrix = np.zeros((16, 96, 96))
+		matrix = np.zeros((16, 96, 96), 'int8')
 		# iterate over all the tracks. First track is only metadata -- not important
 		for message in self:
 
@@ -176,16 +171,6 @@ class MidiMatrix(MidiFile):
 		return matrix
 
 
-# mid = MidiMatrix(-4)
-# midmat = mid.mid_to_matrix()
-# print(midmat[0, :, 6])
-# m, p, s = np.where(midmat != 0)
-
-# print(outfile.shape)
-
-# axes = []
-# fig=plt.figure()
-
 def plot_midi_matrix(mat, ran=[0]):
 	"""
 	Plot specified measures of a midi matrix, specified by their indices in `ran` (can't use the 
@@ -203,12 +188,6 @@ def plot_midi_matrix(mat, ran=[0]):
 def matrix_to_mid(matrix, outfile_name):
 
 	mid = MidiFile()
-
-	# meta_track = MidiTrack()
-	# mid.tracks.append(meta_track)
-	# meta_track.append(MetaMessage('time_signature', numerator = 4, denominator = 4, time=0))
-	# meta_track.append(MetaMessage('set_tempo', tempo=500000, time=0))
-	
 	
 	track = MidiTrack()
 	mid.tracks.append(track)
@@ -253,8 +232,9 @@ def convert_range(ran):
 		print("%d completed, %s was successfully converted" % (i+1, name))
 
 
-faulty_files = []
 parsing_errors = []
+converting_errors = []
+
 
 if __name__ == '__main__':
 
@@ -279,44 +259,32 @@ if __name__ == '__main__':
 	
 		except:
 			print("Warning: %s could not be converted to matrix" % filename)
-			faulty_files.append((ALL_MIDI_FILES.index(file), file))
+			converting_errors.append((ALL_MIDI_FILES.index(file), file))
 		
 		print("------------------------")
 		print()
 
-	np.save('midimatrices.npy', np.array(all_midi_matrices))
 	print("Done!")
 	print()
 	print("Successfully converted %d out of %d files!" % (len(all_midi_matrices), num_files))
 	print()
-
-	with open('faulty_midi.txt', 'w') as fh:
-		for tup in faulty_files:
-			fh.write("%s\n" % tup)
+	print("Saving array as .npy file...")
+	print()
+	np.save('midimatrices.npy', np.array(all_midi_matrices))
+	print("All done!")
 	
-	if faulty_files:
+	
+	if converting_errors:
 		print("Here are the ones that didn't convert: ")
-		for i, f in faulty_files:
+		for i, f in converting_errors:
 			print(f"{i}: {f}") 
+		with open('converting_errors.txt', 'w') as fh:
+			fh.write("%s\n" % f)
 
 	if parsing_errors:
 		print("Here are the files that couldn't be parsed: ")
 		for i, f in parsing_errors:
 			print(f"{i}: {f}") 
 
-
-
-
-
-
-
-
-# plt.imshow(midmat[0])
-# plt.show()
-
-
-
-
-
-
-
+		with open('parsing_errors.txt', 'w') as fh:
+			fh.write("%s\n" % f)
