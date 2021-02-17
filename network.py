@@ -43,10 +43,10 @@ class autoencoder(nn.Module):
 		self.encoder = nn.Sequential(
 			
 			### Level 1 encoding: encoding individual matrices
-			View(MEASURES_PER_SAMPLE, NUMBER_OF_PITCHES, STEPS_PER_MEASURE),
+			View([MEASURES_PER_SAMPLE, NUMBER_OF_PITCHES * STEPS_PER_MEASURE]),
 			TimeDistributed(nn.Linear(STEPS_PER_MEASURE * NUMBER_OF_PITCHES, 2000)),	# return (m, 16, 2000)
 			nn.ReLU(True),
-			TimeDistributed(nn.Linear(2000, 200)),	# sqaush into (16m, 2000), return (m, 16, 200)
+			TimeDistributed(nn.Linear(2000, 200), linear_out=True),	# sqaush into (16m, 2000), return (m, 16, 200)
 			nn.ReLU(True),
 			
 			### Level 2, linear passes
@@ -67,9 +67,9 @@ class autoencoder(nn.Module):
 			TimeDistributed(nn.BatchNorm1d(200, eps=1e-02, momentum=0.9)),
 			nn.ReLU(True),
 
-			TimeDistributed(nn.Linear(200, NUMBER_OF_PITCHES, STEPS_PER_MEASURE)),
+			TimeDistributed(nn.Linear(200, NUMBER_OF_PITCHES * STEPS_PER_MEASURE)),
 			nn.Sigmoid(),
-			View(MEASURES_PER_SAMPLE, NUMBER_OF_PITCHES, STEPS_PER_MEASURE)
+			View([MEASURES_PER_SAMPLE, NUMBER_OF_PITCHES, STEPS_PER_MEASURE])
 			)
 
 	def forward(self, x):
