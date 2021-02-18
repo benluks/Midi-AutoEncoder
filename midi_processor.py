@@ -17,18 +17,20 @@ from mido import MidiFile, Message, MidiTrack, MetaMessage
 import numpy as np
 import matplotlib.pyplot as plt
 
-HOME = eu('~')
-PATH = join(HOME, 'VGScrapes')
-ALL_MIDI_FOLDERS = [join(PATH, folder) for folder in listdir(PATH)[1:]]
+# HOME = eu('~')
+# PATH = join(HOME, 'VGScrapes')
+# ALL_MIDI_FOLDERS = [join(PATH, folder) for folder in listdir(PATH)[1:]]
 
-ALL_MIDI_FILES = []
+# ALL_MIDI_FILES = []
 
-for folder in ALL_MIDI_FOLDERS:
+# for folder in ALL_MIDI_FOLDERS:
 
-	ALL_MIDI_FILES += [join(folder, file) for file in listdir(folder)]a
+# 	ALL_MIDI_FILES += [join(folder, file) for file in listdir(folder)]
 
 
+MEASURES_PER_SAMPLE = 16
 STEPS_PER_MEASURE = 96
+NUMBER_OF_PITCHES = 96
 
 
 all_midi_matrices = []
@@ -179,7 +181,7 @@ def plot_midi_matrix(mat, ran=[0]):
 
 	for i in ran:
 		plt.figure()
-		plt.imshow(midmat[i])
+		plt.imshow(mat[i])
 		plt.title("Measure" + str(i+1))
 
 	plt.show()
@@ -236,8 +238,7 @@ parsing_errors = []
 converting_errors = []
 
 
-if __name__ == '__main__':
-
+def convert_and_save_all_files():
 	num_files = len(ALL_MIDI_FILES)
 
 	for file in ALL_MIDI_FILES:
@@ -285,6 +286,9 @@ if __name__ == '__main__':
 		print("Here are the files that couldn't be parsed: ")
 		for i, f in parsing_errors:
 			print(f"{i}: {f}") 
-
 		with open('parsing_errors.txt', 'w') as fh:
 			fh.write("%s\n" % f)
+
+if __name__ == '__main__':
+
+	MidiMatrix(join(eu('~'), 'VGmidi/Balloon_Fight_-_Main_Theme_%28Dancing_Balloon%21_remix%29.mid')).mid_to_matrix()
