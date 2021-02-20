@@ -1,4 +1,16 @@
 
+import torch
+from torch import nn
+
+
+### FEATURE SIZES
+
+MEASURES_PER_SAMPLE = 16
+STEPS_PER_MEASURE = 96
+NUMBER_OF_PITCHES = 96
+
+
+
 ## PRINT LAYER
 
 class Print(nn.Module):
@@ -66,7 +78,6 @@ class autoencoder(nn.Module):
     self.decoder = nn.Sequential(
 
       nn.Linear(120, 1600),
-      # Print(),
       nn.BatchNorm1d(1600, eps=1e-02),
       nn.ReLU(),
       nn.Dropout(p=0.1),

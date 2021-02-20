@@ -17,9 +17,6 @@ try:
 except NameError:
 	RUNNING_IN_GOOGLE_COLAB = False
 
-
-print(RUNNING_IN_GOOGLE_COLAB)
-
 # LIBRARIES
 
 # Native
@@ -36,14 +33,7 @@ from torch.autograd import Variable
 # 	from midi_processor import matrix_to_mid
 
 # My Libraries
-from network import autoencoder
-# from midi_processor import matrix_to_mid
-
-### FEATURE SIZES
-
-MEASURES_PER_SAMPLE = 16
-STEPS_PER_MEASURE = 96
-NUMBER_OF_PITCHES = 96
+from model import autoencoder
 
 ### HYPERPARAMETERS
 
@@ -61,12 +51,13 @@ if RUNNING_IN_GOOGLE_COLAB:
 	from google.colab import drive
 
 	drive.mount('/content/gdrive')
-	PATH = '/content/gdrive/MyDrive/midi_matrices/midimatrices.npy'
+	PATH_TO_DATA = '/content/gdrive/MyDrive/midi_matrices/midimatrices.npy'
 
 else:
 
 	## Here's where I'll have to specify the path to the data
 	CD_PATH = os.path.join(os.path.abspath(os.getcwd()))
+	PATH_TO_DATA = '../midimatrices.npy'
 
 #ACCESS DATA SAVED ON DRIVE
 
@@ -93,8 +84,6 @@ def generate_random_song(epoch):
   model.eval()
   with torch.no_grad():  
     sample_song = model.decoder(torch.rand(1, 120))
-    assert(sample_song[0].shape == 
-            (MEASURES_PER_SAMPLE, NUMBER_OF_PITCHES, STEPS_PER_MEASURE))
     
     song_np = ((sample_song[0].numpy())*127)
     song_int = song_np.astype(int)
@@ -106,8 +95,6 @@ def generate_random_song(epoch):
         f'{CD_PATH}/generated_songs/epoch{epoch}.npy', song_int)
   
   model.train()
-
-generate_random_song(1) 
 
 # print(model.decoder)
 
