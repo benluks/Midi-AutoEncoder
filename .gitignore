@@ -1,2 +1,9 @@
 
 model_e780.pt
+*.mid
+generator.py
+model_e1980.pt
+all_embeddings.npy
+__pycache__/model.cpython-39.pyc
+__pycache__/midi_processor.cpython-39.pyc
+.DS_Store
